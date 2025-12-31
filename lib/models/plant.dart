@@ -84,6 +84,11 @@ class Plant {
         idMarkers: j['idMarkers'] ?? "",
         lookalikeWarning: j['lookalikeWarning'],
         recipe: PlantRecipe.fromJson(j['recipe']),
-        occurrences: const [],
+        occurrences: ((j['demo'] as Map<String, dynamic>?)?['occurrences']
+                    as List<dynamic>? ??
+                const [])
+            .whereType<Map<String, dynamic>>()
+            .map(Occurrence.fromDemo)
+            .toList(),
       );
 }

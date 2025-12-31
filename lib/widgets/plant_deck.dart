@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/plant.dart';
+import 'plant_network_image.dart';
 
 class PlantDeck extends StatelessWidget {
   final List<Plant> plants;
@@ -158,13 +159,11 @@ class _PlantMiniCard extends StatelessWidget {
                               Theme.of(context).dividerColor.withOpacity(0.35)),
                     ),
                   ),
-                  child: plant.image?.url != null
-                      ? Image.network(
-                          plant.image!.url,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _FallbackVisual(),
-                        )
-                      : _FallbackVisual(),
+                  child: PlantNetworkImage(
+                    url: plant.image?.url,
+                    fit: BoxFit.cover,
+                    fallback: _FallbackVisual(),
+                  ),
                 ),
               ),
               Padding(

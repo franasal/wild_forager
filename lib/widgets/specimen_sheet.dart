@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/plant.dart';
 import 'flip_card.dart';
+import 'plant_network_image.dart';
 
 class SpecimenSheet extends StatefulWidget {
   final Plant plant;
@@ -168,14 +169,11 @@ class _SpecVisual extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          if (img != null)
-            Image.network(
-              img,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => _Fallback(),
-            )
-          else
-            _Fallback(),
+          PlantNetworkImage(
+            url: img,
+            fit: BoxFit.cover,
+            fallback: _Fallback(),
+          ),
           Positioned(
             left: 10,
             bottom: 10,
