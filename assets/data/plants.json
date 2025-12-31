@@ -1,0 +1,728 @@
+{
+  "plants": [
+    {
+      "id": "taraxacum_officinale",
+      "scientificName": "Taraxacum officinale",
+      "commonName": "Dandelion",
+      "wikipedia": "https://en.wikipedia.org/wiki/Taraxacum_officinale",
+      "image": {
+        "title": "Taraxacum officinale 001.JPG",
+        "filePage": "https://commons.wikimedia.org/wiki/File:Taraxacum_officinale_001.JPG",
+        "filePath": "https://commons.wikimedia.org/wiki/Special:FilePath/Taraxacum_officinale_001.JPG",
+        "author": "H. Zell",
+        "license": "CC BY-SA 3.0"
+      },
+      "demo": {
+        "region": "Leipzig (demo points)",
+        "frequencyScore": "Occasional",
+        "occurrences": [
+          {
+            "lat": 51.168533,
+            "lon": 12.243325,
+            "date": "2024-09-29",
+            "gbif_occurrence_count": 2
+          },
+          {
+            "lat": 51.424915,
+            "lon": 12.475029,
+            "date": "2025-07-05",
+            "gbif_occurrence_count": 5
+          },
+          {
+            "lat": 51.311564,
+            "lon": 12.101863,
+            "date": "2024-10-09",
+            "gbif_occurrence_count": 2
+          },
+          {
+            "lat": 51.34163,
+            "lon": 12.099981,
+            "date": "2024-11-18",
+            "gbif_occurrence_count": 5
+          },
+          {
+            "lat": 51.310698,
+            "lon": 12.343801,
+            "date": "2024-06-09",
+            "gbif_occurrence_count": 1
+          },
+          {
+            "lat": 51.432964,
+            "lon": 12.176774,
+            "date": "2023-08-18",
+            "gbif_occurrence_count": 3
+          },
+          {
+            "lat": 51.259654,
+            "lon": 12.208878,
+            "date": "2024-02-10",
+            "gbif_occurrence_count": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "urtica_dioica",
+      "scientificName": "Urtica dioica",
+      "commonName": "Stinging nettle",
+      "wikipedia": "https://en.wikipedia.org/wiki/Urtica_dioica",
+      "image": {
+        "title": "Urtica dioica N F.png",
+        "filePage": "https://commons.wikimedia.org/wiki/File:Urtica_dioica_N_F.png",
+        "filePath": "https://commons.wikimedia.org/wiki/Special:FilePath/Urtica_dioica_N_F.png",
+        "author": "See file page",
+        "license": "See file page"
+      },
+      "demo": {
+        "region": "Leipzig (demo points)",
+        "frequencyScore": "Common",
+        "occurrences": [
+          {
+            "lat": 51.296431,
+            "lon": 12.291752,
+            "date": "2024-01-26",
+            "gbif_occurrence_count": 5
+          },
+          {
+            "lat": 51.254843,
+            "lon": 12.109739,
+            "date": "2023-06-04",
+            "gbif_occurrence_count": 5
+          },
+          {
+            "lat": 51.204502,
+            "lon": 12.616702,
+            "date": "2025-07-22",
+            "gbif_occurrence_count": 5
+          },
+          {
+            "lat": 51.26517,
+            "lon": 12.447306,
+            "date": "2023-12-21",
+            "gbif_occurrence_count": 5
+          },
+          {
+            "lat": 51.228813,
+            "lon": 12.124797,
+            "date": "2024-09-20",
+            "gbif_occurrence_count": 3
+          },
+          {
+            "lat": 51.514555,
+            "lon": 12.578066,
+            "date": "2025-06-07",
+            "gbif_occurrence_count": 4
+          },
+          {
+            "lat": 51.25969,
+            "lon": 12.45137,
+            "date": "2023-12-14",
+            "gbif_occurrence_count": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "allium_ursinum",
+      "scientificName": "Allium ursinum",
+      "commonName": "Wild garlic (ramsons)",
+      "wikipedia": "https://en.wikipedia.org/wiki/Allium_ursinum",
+      "image": {
+        "title": "Allium ursinum 001.JPG",
+        "filePage": "https://commons.wikimedia.org/wiki/File:Allium_ursinum_001.JPG",
+        "filePath": "https://commons.wikimedia.org/wiki/Special:FilePath/Allium_ursinum_001.JPG",
+        "author": "See file page",
+        "license": "See file page"
+      },
+      "demo": {
+        "region": "Leipzig (demo points)",
+        "frequencyScore": "Common",
+        "occurrences": [
+          {
+            "lat": 51.287545,
+            "lon": 12.471266,
+            "date": "2025-08-06",
+            "gbif_occurrence_count": 5
+          },
+          {
+            "lat": 51.388341,
+            "lon": 12.392794,
+            "date": "2024-08-16",
+            "gbif_occurrence_count": 2
+          },
+          {
+            "lat": 51.3261,
+            "lon": 12.240394,
+            "date": "2024-10-07",
+            "gbif_occurrence_count": 3
+          },
+          {
+            "lat": 51.46325,
+            "lon": 12.532311,
+            "date": "2024-09-17",
+            "gbif_occurrence_count": 1
+          },
+          {
+            "lat": 51.449626,
+            "lon": 12.316087,
+            "date": "2025-08-17",
+            "gbif_occurrence_count": 2
+          },
+          {
+            "lat": 51.488578,
+            "lon": 12.411853,
+            "date": "2024-03-26",
+            "gbif_occurrence_count": 2
+          },
+          {
+            "lat": 51.395714,
+            "lon": 12.312895,
+            "date": "2023-06-05",
+            "gbif_occurrence_count": 2
+          },
+          {
+            "lat": 51.254972,
+            "lon": 12.226942,
+            "date": "2024-07-10",
+            "gbif_occurrence_count": 5
+          },
+          {
+            "lat": 51.31391,
+            "lon": 12.421286,
+            "date": "2023-12-20",
+            "gbif_occurrence_count": 2
+          },
+          {
+            "lat": 51.518916,
+            "lon": 12.164471,
+            "date": "2023-03-26",
+            "gbif_occurrence_count": 1
+          },
+          {
+            "lat": 51.431874,
+            "lon": 12.581403,
+            "date": "2025-02-20",
+            "gbif_occurrence_count": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "rubus_fruticosus",
+      "scientificName": "Rubus fruticosus agg.",
+      "commonName": "Blackberry",
+      "wikipedia": "https://en.wikipedia.org/wiki/Rubus_fruticosus",
+      "image": {
+        "title": "Rubus fruticosus 001.JPG",
+        "filePage": "https://commons.wikimedia.org/wiki/File:Rubus_fruticosus_001.JPG",
+        "filePath": "https://commons.wikimedia.org/wiki/Special:FilePath/Rubus_fruticosus_001.JPG",
+        "author": "H. Zell",
+        "license": "CC BY-SA 3.0 (also GFDL)"
+      },
+      "demo": {
+        "region": "Leipzig (demo points)",
+        "frequencyScore": "Common",
+        "occurrences": [
+          {
+            "lat": 51.374442,
+            "lon": 12.306628,
+            "date": "2023-05-17",
+            "gbif_occurrence_count": 5
+          },
+          {
+            "lat": 51.25012,
+            "lon": 12.403803,
+            "date": "2025-12-07",
+            "gbif_occurrence_count": 1
+          },
+          {
+            "lat": 51.405181,
+            "lon": 12.394426,
+            "date": "2024-07-02",
+            "gbif_occurrence_count": 3
+          },
+          {
+            "lat": 51.199719,
+            "lon": 12.335469,
+            "date": "2023-06-15",
+            "gbif_occurrence_count": 1
+          },
+          {
+            "lat": 51.503237,
+            "lon": 12.589911,
+            "date": "2024-07-09",
+            "gbif_occurrence_count": 5
+          },
+          {
+            "lat": 51.434101,
+            "lon": 12.377531,
+            "date": "2025-05-27",
+            "gbif_occurrence_count": 3
+          },
+          {
+            "lat": 51.462824,
+            "lon": 12.37752,
+            "date": "2024-11-18",
+            "gbif_occurrence_count": 2
+          },
+          {
+            "lat": 51.294264,
+            "lon": 12.177864,
+            "date": "2023-01-09",
+            "gbif_occurrence_count": 1
+          },
+          {
+            "lat": 51.375356,
+            "lon": 12.366527,
+            "date": "2025-05-15",
+            "gbif_occurrence_count": 3
+          },
+          {
+            "lat": 51.476176,
+            "lon": 12.564422,
+            "date": "2024-04-10",
+            "gbif_occurrence_count": 2
+          },
+          {
+            "lat": 51.180394,
+            "lon": 12.591156,
+            "date": "2025-07-22",
+            "gbif_occurrence_count": 1
+          },
+          {
+            "lat": 51.42327,
+            "lon": 12.555399,
+            "date": "2023-01-05",
+            "gbif_occurrence_count": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "plantago_lanceolata",
+      "scientificName": "Plantago lanceolata",
+      "commonName": "Ribwort plantain",
+      "wikipedia": "https://en.wikipedia.org/wiki/Plantago_lanceolata",
+      "image": {
+        "title": "Plantago laceolata 001.JPG",
+        "filePage": "https://commons.wikimedia.org/wiki/File:Plantago_laceolata_001.JPG",
+        "filePath": "https://commons.wikimedia.org/wiki/Special:FilePath/Plantago_laceolata_001.JPG",
+        "author": "H. Zell",
+        "license": "CC BY-SA 3.0 (also GFDL)"
+      },
+      "demo": {
+        "region": "Leipzig (demo points)",
+        "frequencyScore": "Common",
+        "occurrences": [
+          {
+            "lat": 51.397268,
+            "lon": 12.630865,
+            "date": "2025-01-26",
+            "gbif_occurrence_count": 3
+          },
+          {
+            "lat": 51.349673,
+            "lon": 12.434589,
+            "date": "2024-10-23",
+            "gbif_occurrence_count": 5
+          },
+          {
+            "lat": 51.431687,
+            "lon": 12.482625,
+            "date": "2024-04-01",
+            "gbif_occurrence_count": 4
+          },
+          {
+            "lat": 51.518132,
+            "lon": 12.459557,
+            "date": "2023-07-17",
+            "gbif_occurrence_count": 5
+          },
+          {
+            "lat": 51.322218,
+            "lon": 12.227679,
+            "date": "2025-08-21",
+            "gbif_occurrence_count": 3
+          },
+          {
+            "lat": 51.1671,
+            "lon": 12.404205,
+            "date": "2024-10-05",
+            "gbif_occurrence_count": 1
+          },
+          {
+            "lat": 51.185103,
+            "lon": 12.448727,
+            "date": "2024-09-18",
+            "gbif_occurrence_count": 1
+          },
+          {
+            "lat": 51.485797,
+            "lon": 12.580556,
+            "date": "2025-08-07",
+            "gbif_occurrence_count": 5
+          }
+        ]
+      }
+    },
+    {
+      "id": "rumex_acetosa",
+      "scientificName": "Rumex acetosa",
+      "commonName": "Common sorrel",
+      "wikipedia": "https://en.wikipedia.org/wiki/Rumex_acetosa",
+      "image": {
+        "title": "20150413Rumex acetosa1.jpg",
+        "filePage": "https://commons.wikimedia.org/wiki/File:20150413Rumex_acetosa1.jpg",
+        "filePath": "https://commons.wikimedia.org/wiki/Special:FilePath/20150413Rumex_acetosa1.jpg",
+        "author": "AnRo0002",
+        "license": "CC0 1.0"
+      },
+      "demo": {
+        "region": "Leipzig (demo points)",
+        "frequencyScore": "Common",
+        "occurrences": [
+          {
+            "lat": 51.259872,
+            "lon": 12.364686,
+            "date": "2025-04-04",
+            "gbif_occurrence_count": 5
+          },
+          {
+            "lat": 51.367164,
+            "lon": 12.224847,
+            "date": "2023-05-07",
+            "gbif_occurrence_count": 4
+          },
+          {
+            "lat": 51.228136,
+            "lon": 12.140589,
+            "date": "2023-08-01",
+            "gbif_occurrence_count": 3
+          },
+          {
+            "lat": 51.312161,
+            "lon": 12.354078,
+            "date": "2025-09-11",
+            "gbif_occurrence_count": 1
+          },
+          {
+            "lat": 51.181362,
+            "lon": 12.504745,
+            "date": "2025-05-21",
+            "gbif_occurrence_count": 2
+          },
+          {
+            "lat": 51.228561,
+            "lon": 12.394032,
+            "date": "2025-03-18",
+            "gbif_occurrence_count": 4
+          },
+          {
+            "lat": 51.225642,
+            "lon": 12.351542,
+            "date": "2025-07-29",
+            "gbif_occurrence_count": 4
+          },
+          {
+            "lat": 51.450699,
+            "lon": 12.57844,
+            "date": "2025-06-13",
+            "gbif_occurrence_count": 1
+          },
+          {
+            "lat": 51.394527,
+            "lon": 12.396513,
+            "date": "2025-11-30",
+            "gbif_occurrence_count": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "sambucus_nigra",
+      "scientificName": "Sambucus nigra",
+      "commonName": "Elder",
+      "wikipedia": "https://en.wikipedia.org/wiki/Sambucus_nigra",
+      "image": {
+        "title": "Sambucus nigra flowers A.jpg",
+        "filePage": "https://commons.wikimedia.org/wiki/File:Sambucus_nigra_flowers_A.jpg",
+        "filePath": "https://commons.wikimedia.org/wiki/Special:FilePath/Sambucus_nigra_flowers_A.jpg",
+        "author": "Wouter Hagens",
+        "license": "CC BY-SA 3.0 (also GFDL)"
+      },
+      "demo": {
+        "region": "Leipzig (demo points)",
+        "frequencyScore": "Common",
+        "occurrences": [
+          {
+            "lat": 51.219452,
+            "lon": 12.364817,
+            "date": "2024-10-19",
+            "gbif_occurrence_count": 4
+          },
+          {
+            "lat": 51.484724,
+            "lon": 12.179645,
+            "date": "2025-12-26",
+            "gbif_occurrence_count": 4
+          },
+          {
+            "lat": 51.255088,
+            "lon": 12.536967,
+            "date": "2023-06-13",
+            "gbif_occurrence_count": 3
+          },
+          {
+            "lat": 51.311955,
+            "lon": 12.636905,
+            "date": "2023-04-09",
+            "gbif_occurrence_count": 2
+          },
+          {
+            "lat": 51.227951,
+            "lon": 12.210255,
+            "date": "2025-09-02",
+            "gbif_occurrence_count": 5
+          },
+          {
+            "lat": 51.42465,
+            "lon": 12.119838,
+            "date": "2024-03-28",
+            "gbif_occurrence_count": 1
+          },
+          {
+            "lat": 51.177589,
+            "lon": 12.35971,
+            "date": "2023-01-08",
+            "gbif_occurrence_count": 2
+          },
+          {
+            "lat": 51.180017,
+            "lon": 12.377616,
+            "date": "2024-12-15",
+            "gbif_occurrence_count": 1
+          },
+          {
+            "lat": 51.373947,
+            "lon": 12.474172,
+            "date": "2024-09-05",
+            "gbif_occurrence_count": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "stellaria_media",
+      "scientificName": "Stellaria media",
+      "commonName": "Chickweed",
+      "wikipedia": "https://en.wikipedia.org/wiki/Stellaria_media",
+      "image": {
+        "title": "Stellaria media 001.jpg",
+        "filePage": "https://commons.wikimedia.org/wiki/File:Stellaria_media_001.jpg",
+        "filePath": "https://commons.wikimedia.org/wiki/Special:FilePath/Stellaria_media_001.jpg",
+        "author": "Rayondesoleil",
+        "license": "CC BY-SA 3.0"
+      },
+      "demo": {
+        "region": "Leipzig (demo points)",
+        "frequencyScore": "Occasional",
+        "occurrences": [
+          {
+            "lat": 51.498834,
+            "lon": 12.413292,
+            "date": "2025-10-10",
+            "gbif_occurrence_count": 5
+          },
+          {
+            "lat": 51.189063,
+            "lon": 12.463881,
+            "date": "2023-01-25",
+            "gbif_occurrence_count": 3
+          },
+          {
+            "lat": 51.496351,
+            "lon": 12.202501,
+            "date": "2024-03-27",
+            "gbif_occurrence_count": 2
+          },
+          {
+            "lat": 51.255237,
+            "lon": 12.160171,
+            "date": "2024-04-25",
+            "gbif_occurrence_count": 4
+          },
+          {
+            "lat": 51.273458,
+            "lon": 12.518388,
+            "date": "2025-08-04",
+            "gbif_occurrence_count": 1
+          },
+          {
+            "lat": 51.324668,
+            "lon": 12.660634,
+            "date": "2025-06-09",
+            "gbif_occurrence_count": 1
+          },
+          {
+            "lat": 51.353262,
+            "lon": 12.376495,
+            "date": "2025-04-03",
+            "gbif_occurrence_count": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "achillea_millefolium",
+      "scientificName": "Achillea millefolium",
+      "commonName": "Yarrow",
+      "wikipedia": "https://en.wikipedia.org/wiki/Achillea_millefolium",
+      "image": {
+        "title": "Achillea millefolium 001.JPG",
+        "filePage": "https://commons.wikimedia.org/wiki/File:Achillea_millefolium_001.JPG",
+        "filePath": "https://commons.wikimedia.org/wiki/Special:FilePath/Achillea_millefolium_001.JPG",
+        "author": "H. Zell",
+        "license": "See file page"
+      },
+      "demo": {
+        "region": "Leipzig (demo points)",
+        "frequencyScore": "Occasional",
+        "occurrences": [
+          {
+            "lat": 51.476374,
+            "lon": 12.297836,
+            "date": "2025-02-10",
+            "gbif_occurrence_count": 4
+          },
+          {
+            "lat": 51.459968,
+            "lon": 12.490512,
+            "date": "2023-01-12",
+            "gbif_occurrence_count": 1
+          },
+          {
+            "lat": 51.400191,
+            "lon": 12.404597,
+            "date": "2025-06-01",
+            "gbif_occurrence_count": 2
+          },
+          {
+            "lat": 51.254823,
+            "lon": 12.597906,
+            "date": "2025-02-15",
+            "gbif_occurrence_count": 3
+          },
+          {
+            "lat": 51.261054,
+            "lon": 12.206176,
+            "date": "2024-01-28",
+            "gbif_occurrence_count": 2
+          },
+          {
+            "lat": 51.407267,
+            "lon": 12.576678,
+            "date": "2023-03-01",
+            "gbif_occurrence_count": 4
+          },
+          {
+            "lat": 51.250014,
+            "lon": 12.608547,
+            "date": "2025-09-17",
+            "gbif_occurrence_count": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "rosa_canina",
+      "scientificName": "Rosa canina",
+      "commonName": "Dog rose (rosehip)",
+      "wikipedia": "https://en.wikipedia.org/wiki/Rosa_canina",
+      "image": {
+        "title": "Rosa canina 001.JPG",
+        "filePage": "https://commons.wikimedia.org/wiki/File:Rosa_canina_001.JPG",
+        "filePath": "https://commons.wikimedia.org/wiki/Special:FilePath/Rosa_canina_001.JPG",
+        "author": "H. Zell",
+        "license": "CC BY-SA 3.0"
+      },
+      "demo": {
+        "region": "Leipzig (demo points)",
+        "frequencyScore": "Common",
+        "occurrences": [
+          {
+            "lat": 51.458384,
+            "lon": 12.110106,
+            "date": "2024-02-16",
+            "gbif_occurrence_count": 2
+          },
+          {
+            "lat": 51.38911,
+            "lon": 12.235783,
+            "date": "2023-07-10",
+            "gbif_occurrence_count": 5
+          },
+          {
+            "lat": 51.413814,
+            "lon": 12.408234,
+            "date": "2025-05-15",
+            "gbif_occurrence_count": 1
+          },
+          {
+            "lat": 51.500079,
+            "lon": 12.48329,
+            "date": "2025-02-28",
+            "gbif_occurrence_count": 5
+          },
+          {
+            "lat": 51.172503,
+            "lon": 12.297657,
+            "date": "2025-03-02",
+            "gbif_occurrence_count": 4
+          },
+          {
+            "lat": 51.205446,
+            "lon": 12.262493,
+            "date": "2025-10-10",
+            "gbif_occurrence_count": 3
+          },
+          {
+            "lat": 51.235223,
+            "lon": 12.228616,
+            "date": "2025-06-03",
+            "gbif_occurrence_count": 3
+          },
+          {
+            "lat": 51.440643,
+            "lon": 12.594689,
+            "date": "2023-09-20",
+            "gbif_occurrence_count": 5
+          },
+          {
+            "lat": 51.429602,
+            "lon": 12.618703,
+            "date": "2024-09-02",
+            "gbif_occurrence_count": 2
+          },
+          {
+            "lat": 51.511306,
+            "lon": 12.552369,
+            "date": "2023-09-08",
+            "gbif_occurrence_count": 1
+          },
+          {
+            "lat": 51.224154,
+            "lon": 12.617966,
+            "date": "2023-09-09",
+            "gbif_occurrence_count": 2
+          },
+          {
+            "lat": 51.255666,
+            "lon": 12.538873,
+            "date": "2025-05-23",
+            "gbif_occurrence_count": 4
+          }
+        ]
+      }
+    }
+  ]
+}
