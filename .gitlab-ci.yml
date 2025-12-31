@@ -1,0 +1,25 @@
+image: ghcr.io/cirruslabs/flutter:stable
+
+cache:
+  paths:
+    - .pub-cache/
+
+variables:
+  PUB_CACHE: "$CI_PROJECT_DIR/.pub-cache"
+
+pages:
+  stage: deploy
+  script:
+    - flutter --version
+    - flutter pub get
+    # IMPORTANT: project Pages live under /<project>/, so set base-href accordingly
+    - flutter build web --release --base-href "/$CI_PROJECT_NAME/"
+    # SPA routing fallback (optional but recommended if you use Navigator 2.0 / go_router / routes)
+    - cp build/web/index.html build/web/404.html
+    - rm -rf public
+    - mv build/web public
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
