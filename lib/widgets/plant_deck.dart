@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import '../../models/plant.dart';
 import 'plant_network_image.dart';
 
-class PlantDeck extends StatelessWidget {
+class PlantDeck extends StatefulWidget {
   final List<Plant> plants;
   final ValueChanged<Plant> onSelect;
 
@@ -13,8 +14,21 @@ class PlantDeck extends StatelessWidget {
   });
 
   @override
+  State<PlantDeck> createState() => _PlantDeckState();
+}
+
+class _PlantDeckState extends State<PlantDeck> {
+  final ScrollController _controller = ScrollController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final sorted = [...plants]
+    final sorted = [...widget.plants]
       ..sort((a, b) => b.frequency.compareTo(a.frequency));
 
     return Container(
@@ -51,13 +65,30 @@ class PlantDeck extends StatelessWidget {
               height: 1,
               color: Theme.of(context).dividerColor.withOpacity(0.35)),
           Expanded(
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-              children: [
-                for (final p in sorted)
-                  _PlantMiniCard(plant: p, onTap: () => onSelect(p)),
-              ],
+            child: Scrollbar(
+              controller: _controller,
+              thumbVisibility: true,
+              child: Listener(
+                onPointerSignal: (event) {
+                  if (event is! PointerScrollEvent) return;
+                  if (!_controller.hasClients) return;
+
+                  final delta = event.scrollDelta.dy;
+                  final target = (_controller.offset + delta)
+                      .clamp(0.0, _controller.position.maxScrollExtent);
+                  _controller.jumpTo(target);
+                },
+                child: ListView(
+                  controller: _controller,
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+                  children: [
+                    for (final p in sorted)
+                      _PlantMiniCard(
+                          plant: p, onTap: () => widget.onSelect(p)),
+                  ],
+                ),
+              ),
             ),
           ),
         ],
