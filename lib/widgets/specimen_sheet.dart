@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 import '../../models/plant.dart';
+import '../../models/occurrence.dart';
+import '../../models/plant_local_stats.dart';
 import 'flip_card.dart';
 import 'plant_network_image.dart';
 
 class SpecimenSheet extends StatefulWidget {
   final Plant plant;
-  const SpecimenSheet({super.key, required this.plant});
+  final Map<String, String> debugInfo;
+  final PlantLocalStats? stats;
+  const SpecimenSheet({
+    super.key,
+    required this.plant,
+    this.debugInfo = const {},
+    this.stats,
+  });
 
   @override
   State<SpecimenSheet> createState() => _SpecimenSheetState();
@@ -54,7 +63,7 @@ class _SpecimenSheetState extends State<SpecimenSheet> {
                   children: [
                     _SpecVisual(p: p),
                     const SizedBox(height: 12),
-                    _StatsGrid(p: p),
+                    _StatsGrid(p: p, stats: widget.stats),
                     const SizedBox(height: 12),
                     _Block(
                       title: "Identification markers",
@@ -184,7 +193,7 @@ class _SpecVisual extends StatelessWidget {
                 color: Colors.black.withOpacity(0.45),
               ),
               child: Text(
-                "${p.frequency} observations",
+                "Total: ${p.total > 0 ? p.total : p.sampleCount}",
                 style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
@@ -213,69 +222,161 @@ class _Fallback extends StatelessWidget {
 
 class _StatsGrid extends StatelessWidget {
   final Plant p;
-  const _StatsGrid({required this.p});
+  final PlantLocalStats? stats;
+  const _StatsGrid({required this.p, required this.stats});
 
   @override
   Widget build(BuildContext context) {
-    // MVP "Top Trumps" stats: placeholders, can be replaced by real nutrition/season data later.
-    final items = <_KV>[
-      _KV("Frequency", "${p.frequency}"),
-      _KV("Taxon key", p.taxonKey?.toString() ?? "—"),
-      _KV("GBIF points", "${p.occurrences.length}"),
-      _KV("Mode", "MVP"),
-    ];
+    final season = p.monthCountsAll.isNotEmpty
+        ? p.monthCountsAll
+        : _monthHistogram(p.occurrences);
+    final last = stats?.lastObserved ??
+        (p.occurrences.isNotEmpty ? p.occurrences.first.eventDate : null);
+    final near = stats?.localCount10km ?? p.sampleCount;
+    final total = p.total > 0 ? p.total : p.sampleCount;
 
-    return GridView.count(
-      crossAxisCount: 2,
-      mainAxisSpacing: 10,
-      crossAxisSpacing: 10,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      children: items.map((kv) => _KvCard(kv: kv)).toList(),
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _Block(
+                title: "Seasonality",
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _SeasonalityBars(counts: season),
+                    const SizedBox(height: 8),
+                    const _MonthLabels(),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        _Block(
+          title: "Summary",
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _KVRow(label: "Local (10 km sample)", value: "$near"),
+              _KVRow(label: "Total (country)", value: "$total"),
+              _KVRow(label: "Last observation", value: _fmtDate(last)),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _KV {
+class _KVRow extends StatelessWidget {
   final String label;
   final String value;
-  _KV(this.label, this.value);
-}
-
-class _KvCard extends StatelessWidget {
-  final _KV kv;
-  const _KvCard({required this.kv});
+  const _KVRow({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        border:
-            Border.all(color: Theme.of(context).dividerColor.withOpacity(0.35)),
-        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.35),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
         children: [
-          Text(
-            kv.label.toUpperCase(),
-            style: TextStyle(
-              fontSize: 11,
-              letterSpacing: 0.4,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.65),
-              fontWeight: FontWeight.w800,
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withOpacity(0.65),
+              ),
             ),
           ),
-          const SizedBox(height: 6),
-          Text(kv.value,
-              style:
-                  const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
+          ),
         ],
       ),
     );
   }
+}
+
+List<int> _monthHistogram(List<Occurrence> occ) {
+  final out = List<int>.filled(12, 0);
+  for (final o in occ) {
+    final dt = o.eventDate;
+    if (dt == null) continue;
+    out[dt.month - 1] += o.count;
+  }
+  return out;
+}
+
+class _SeasonalityBars extends StatelessWidget {
+  final List<int> counts;
+  const _SeasonalityBars({required this.counts});
+
+  @override
+  Widget build(BuildContext context) {
+    final max = counts.isEmpty ? 1 : counts.reduce((a, b) => a > b ? a : b);
+    return SizedBox(
+      height: 44,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          for (final c in counts)
+            Expanded(
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 1),
+                height: (max == 0) ? 2.0 : (8.0 + (32.0 * (c / max))),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(6),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withOpacity(c == 0 ? 0.2 : 0.75),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MonthLabels extends StatelessWidget {
+  const _MonthLabels();
+
+  @override
+  Widget build(BuildContext context) {
+    const labels = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
+    return Row(
+      children: [
+        for (final m in labels)
+          Expanded(
+            child: Center(
+              child: Text(
+                m,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withOpacity(0.65),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+String _fmtDate(DateTime? dt) {
+  if (dt == null) return "—";
+  return dt.toIso8601String().split('T').first;
 }
 
 enum _BlockTone { normal, warning, danger }

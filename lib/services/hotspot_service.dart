@@ -1,5 +1,4 @@
 import '../models/occurrence.dart';
-import 'dart:math' as math;
 
 class HotspotCell {
   final double lat;

@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import '../../models/plant.dart';
+import 'package:wild_forager/models/plant.dart';
+import 'package:wild_forager/models/plant_local_stats.dart';
 import 'plant_network_image.dart';
 
 class PlantDeck extends StatefulWidget {
   final List<Plant> plants;
+  final Map<String, PlantLocalStats> localStats;
+  final ValueChanged<Plant>? onFocus;
   final ValueChanged<Plant> onSelect;
 
   const PlantDeck({
     super.key,
     required this.plants,
+    this.localStats = const {},
+    this.onFocus,
     required this.onSelect,
   });
 
@@ -18,7 +23,9 @@ class PlantDeck extends StatefulWidget {
 }
 
 class _PlantDeckState extends State<PlantDeck> {
-  final ScrollController _controller = ScrollController();
+  final PageController _controller = PageController(viewportFraction: 0.88);
+  List<String> _lastIds = const [];
+  bool _dragging = false;
 
   @override
   void dispose() {
@@ -28,8 +35,16 @@ class _PlantDeckState extends State<PlantDeck> {
 
   @override
   Widget build(BuildContext context) {
-    final sorted = [...widget.plants]
-      ..sort((a, b) => b.frequency.compareTo(a.frequency));
+    final sorted = widget.plants;
+
+    final ids = sorted.map((p) => p.id).toList();
+    if (ids.isNotEmpty && ids.toString() != _lastIds.toString()) {
+      _lastIds = ids;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        widget.onFocus?.call(sorted.first);
+      });
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -72,21 +87,36 @@ class _PlantDeckState extends State<PlantDeck> {
                 onPointerSignal: (event) {
                   if (event is! PointerScrollEvent) return;
                   if (!_controller.hasClients) return;
+                  if (_dragging) return;
 
                   final delta = event.scrollDelta.dy;
                   final target = (_controller.offset + delta)
                       .clamp(0.0, _controller.position.maxScrollExtent);
                   _controller.jumpTo(target);
                 },
-                child: ListView(
+                onPointerDown: (_) => _dragging = true,
+                onPointerUp: (_) => _dragging = false,
+                onPointerCancel: (_) => _dragging = false,
+                child: PageView.builder(
                   controller: _controller,
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-                  children: [
-                    for (final p in sorted)
-                      _PlantMiniCard(
-                          plant: p, onTap: () => widget.onSelect(p)),
-                  ],
+                  itemCount: sorted.length,
+                  padEnds: false,
+                  onPageChanged: (i) {
+                    if (i < 0 || i >= sorted.length) return;
+                    widget.onFocus?.call(sorted[i]);
+                  },
+                  itemBuilder: (context, i) {
+                    final p = sorted[i];
+                    final stats = widget.localStats[p.id];
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: _PlantMiniCard(
+                        plant: p,
+                        stats: stats,
+                        onTap: () => widget.onSelect(p),
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
@@ -109,7 +139,7 @@ class _DeckTitle extends StatelessWidget {
             style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
         const SizedBox(height: 2),
         Text(
-          "Sorted by nearby observations (MVP)",
+          "Top plants near you (≈10 km)",
           style: TextStyle(
             fontSize: 12,
             color: Theme.of(context).colorScheme.onSurface.withOpacity(0.65),
@@ -122,13 +152,20 @@ class _DeckTitle extends StatelessWidget {
 
 class _PlantMiniCard extends StatelessWidget {
   final Plant plant;
+  final PlantLocalStats? stats;
   final VoidCallback onTap;
 
-  const _PlantMiniCard({required this.plant, required this.onTap});
+  const _PlantMiniCard({
+    required this.plant,
+    required this.stats,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final badge = _badgeForFrequency(plant.frequency);
+    final badge = _badgeForRarity(plant.rarity);
+    final localCount = stats?.localCount10km ?? 0;
+    final total = plant.total > 0 ? plant.total : plant.sampleCount;
 
     return Padding(
       padding: const EdgeInsets.only(right: 12),
@@ -201,21 +238,9 @@ class _PlantMiniCard extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
                 child: Row(
                   children: [
-                    Text(
-                      "Observations:",
-                      style: TextStyle(
-                          fontSize: 12,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withOpacity(0.65)),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      "${plant.frequency}",
-                      style: const TextStyle(
-                          fontSize: 12, fontWeight: FontWeight.w800),
-                    ),
+                    _Metric(label: "Near you", value: "$localCount"),
+                    const SizedBox(width: 10),
+                    _Metric(label: "Total", value: "$total"),
                     const Spacer(),
                     Text(
                       "Tap →",
@@ -284,10 +309,15 @@ class _BadgeTone {
   _BadgeTone(this.label, this.tone);
 }
 
-_BadgeTone _badgeForFrequency(int n) {
-  if (n >= 60) return _BadgeTone("Common", const Color(0xFF1A8F3F));
-  if (n >= 15) return _BadgeTone("Medium", const Color(0xFFB56B00));
-  return _BadgeTone("Rare", const Color(0xFFC73434));
+_BadgeTone _badgeForRarity(PlantRarity rarity) {
+  switch (rarity) {
+    case PlantRarity.rare:
+      return _BadgeTone("Rare", const Color(0xFFC73434));
+    case PlantRarity.medium:
+      return _BadgeTone("Medium", const Color(0xFFB56B00));
+    case PlantRarity.common:
+      return _BadgeTone("Common", const Color(0xFF1A8F3F));
+  }
 }
 
 class _Badge extends StatelessWidget {
@@ -306,6 +336,33 @@ class _Badge extends StatelessWidget {
       ),
       child: Text(text,
           style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+    );
+  }
+}
+
+class _Metric extends StatelessWidget {
+  final String label;
+  final String value;
+  const _Metric({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(
+          "$label:",
+          style: TextStyle(
+              fontSize: 12,
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withOpacity(0.65)),
+        ),
+        const SizedBox(width: 4),
+        Text(value,
+            style:
+                const TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
+      ],
     );
   }
 }

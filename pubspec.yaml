@@ -36,6 +36,10 @@ dependencies:
   latlong2: ^0.9.1
   geolocator: ^13.0.1
   shared_preferences: ^2.2.3
+  sqflite: ^2.3.3
+  path_provider: ^2.1.4
+  flutter_launcher_icons: ^0.13.1
+
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -55,6 +59,15 @@ dev_dependencies:
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
+
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  web: true
+  image_path: "assets/icon/icon.png"
+  remove_alpha_ios: true
+
 
 # The following section is specific to Flutter packages.
 

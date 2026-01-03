@@ -1,0 +1,13 @@
+{
+  "version": "template",
+  "filters": {
+    "basisOfRecord": "HUMAN_OBSERVATION",
+    "occurrenceStatus": "PRESENT"
+  },
+  "region": {
+    "name": "GBIF radius export",
+    "center": { "lat": 51.3397, "lon": 12.3731 },
+    "radiusKm": 10
+  },
+  "plants": []
+}

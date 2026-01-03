@@ -1,0 +1,43 @@
+{
+  "version": "demo-2plants",
+  "plants": [
+    {
+      "id": "urtica_dioica",
+      "taxonKey": 7960979,
+      "scientificName": "Urtica dioica",
+      "commonName": "Stinging nettle",
+      "wikipedia": "https://en.wikipedia.org/wiki/Urtica_dioica",
+      "image": {
+        "url": "https://upload.wikimedia.org/wikipedia/commons/a/aa/Urtica_dioica_001.JPG",
+        "filePage": "https://commons.wikimedia.org/wiki/File:Urtica_dioica_001.JPG",
+        "creditUrl": "https://commons.wikimedia.org/wiki/File:Urtica_dioica_001.JPG"
+      },
+      "idMarkers": "Opposite, serrated leaves with stinging hairs. Square-ish stems and dense clusters of small green flowers.",
+      "lookalikeWarning": "Do not confuse with non‑stinging dead‑nettles (Lamium spp.) which have similar leaves but no stinging hairs.",
+      "recipe": {
+        "prep": "Blanch leaves 1–2 minutes to remove sting. Drain and squeeze dry.",
+        "simple": "Nettle soup: sauté onion/garlic, add blanched leaves and stock, blend, season.",
+        "pairing": "Garlic, lemon, potatoes, eggs, soft cheeses."
+      }
+    },
+    {
+      "id": "allium_ursinum",
+      "taxonKey": 2857601,
+      "scientificName": "Allium ursinum",
+      "commonName": "Wild garlic (ramsons)",
+      "wikipedia": "https://en.wikipedia.org/wiki/Allium_ursinum",
+      "image": {
+        "url": "https://commons.wikimedia.org/wiki/Allium_ursinum#/media/File:Allium_ursinum_3_RF.jpg",
+        "filePage": "https://commons.wikimedia.org/wiki/File:Allium_ursinum_001.JPG",
+        "creditUrl": "https://commons.wikimedia.org/wiki/File:Allium_ursinum_001.JPG"
+      },
+      "idMarkers": "Broad, lance‑shaped leaves with a strong garlic scent when crushed; white star‑shaped flowers in spring.",
+      "lookalikeWarning": "Can be confused with lily of the valley or autumn crocus, which are toxic and lack garlic smell.",
+      "recipe": {
+        "prep": "Wash and dry leaves. Use fresh; heat reduces flavor.",
+        "simple": "Ramson pesto: blend leaves with olive oil, nuts, hard cheese, lemon, salt.",
+        "pairing": "Pasta, potatoes, eggs, soft cheeses."
+      }
+    }
+  ]
+}

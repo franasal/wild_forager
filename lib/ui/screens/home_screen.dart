@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../../../models/plant.dart';
-import '../../../services/plant_repo.dart';
-import '../../../services/location_service.dart';
-import '../../../services/gbif_service.dart';
-import '../../../services/hotspot_service.dart';
-import '../../widgets/radar_map.dart';
-import '../../widgets/plant_deck.dart';
-import '../../widgets/specimen_sheet.dart';
-
-enum MapMode { hotspots, allPoints }
+import 'package:wild_forager/models/plant.dart';
+import 'package:wild_forager/models/plant_local_stats.dart';
+import 'package:wild_forager/services/location_service.dart';
+import 'package:wild_forager/services/plant_repo.dart';
+import 'package:wild_forager/widgets/plant_list.dart';
+import 'package:wild_forager/widgets/radar_map.dart';
+import 'package:wild_forager/widgets/specimen_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback onToggleTheme;
@@ -24,14 +21,14 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<Plant> plants = [];
+  List<Plant> sortedPlants = [];
+  Set<String> selectedIds = {};
+  Map<String, PlantLocalStats> localStats = {};
+  LatLng? _lastStatsLocation;
   LatLng user = const LatLng(51.3397, 12.3731);
   String regionName = "Loading…";
-  String hudMode = "Loading…";
-  MapMode mode = MapMode.hotspots;
-
-  Plant? selected;
-
-  bool loading = true;
+  String hudMode = "Loading dataset…";
+  Plant? focusedPlant;
 
   @override
   void initState() {
@@ -41,82 +38,219 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _boot() async {
     setState(() {
-      loading = true;
-      hudMode = "Loading plant metadata…";
+      hudMode = "Loading offline dataset…";
+      plants = [];
+      sortedPlants = [];
+      selectedIds = {};
+      localStats = {};
     });
 
     final repo = await PlantRepo.loadBundledPlants();
     plants = repo.plants;
-    regionName = repo.region?['name']?.toString() ?? "Local Starter Pack";
+    selectedIds = plants.map((p) => p.id).toSet();
+    regionName = repo.region?['name']?.toString() ?? "Offline dataset";
 
-    // Resolve missing taxonKeys (optional but useful)
-    hudMode = "Resolving GBIF taxa…";
-    setState(() {});
-    for (final p in plants) {
-      if (p.taxonKey != null) continue;
-      final key = await GbifService.resolveTaxonKey(p.scientificName);
-      if (key != null) p.taxonKey = key;
+    final center = repo.region?['center'] as Map<String, dynamic>?;
+    if (center != null &&
+        center['lat'] is num &&
+        center['lon'] is num) {
+      user = LatLng(
+        (center['lat'] as num).toDouble(),
+        (center['lon'] as num).toDouble(),
+      );
     }
 
-    // Get GPS
+    await _recomputeLocalStats(location: user, force: true);
+    _recomputeSelection();
+    await _locateUser();
+
+    setState(() {
+      hudMode = hudMode.isEmpty ? "Offline dataset ready" : hudMode;
+    });
+  }
+
+  Future<void> _locateUser() async {
     hudMode = "Getting location…";
     setState(() {});
     final pos = await LocationService.getPosition();
-    if (pos != null) {
-      user = LatLng(pos.latitude, pos.longitude);
-    }
-
-    // Fetch occurrences
-    final keys = plants
-        .where((p) => p.taxonKey != null)
-        .map((p) => p.taxonKey!)
-        .toList();
-    if (keys.isNotEmpty) {
-      hudMode = "Fetching GBIF observations…";
+    if (pos == null) {
+      hudMode = "Using region center";
       setState(() {});
-      try {
-        final byKey = await GbifService.fetchOccurrencesByTaxa(
-          lat: user.latitude,
-          lon: user.longitude,
-          taxonKeys: keys,
-          radiusKm: 10,
-          limit: 300,
-        );
-        for (final p in plants) {
-          final k = p.taxonKey;
-          if (k == null) continue;
-          p.occurrences = byKey[k] ?? [];
-        }
-        hudMode =
-            "GBIF loaded: ${plants.fold<int>(0, (s, p) => s + p.occurrences.length)} points";
-      } catch (_) {
-        hudMode = "GBIF failed, using offline metadata";
-      }
-    } else {
-      hudMode = "No taxon keys resolved (metadata only)";
+      return;
+    }
+    final next = LatLng(pos.latitude, pos.longitude);
+    user = next;
+    hudMode = "Using device location";
+    await _recomputeLocalStats(location: next);
+    _recomputeSelection();
+    setState(() {});
+  }
+
+  Future<void> _recomputeLocalStats({
+    required LatLng location,
+    bool force = false,
+  }) async {
+    if (!force &&
+        _lastStatsLocation != null &&
+        _distanceKm(_lastStatsLocation!, location) < 1) {
+      return;
     }
 
+    final stats = <String, PlantLocalStats>{};
+    for (final p in plants) {
+      stats[p.id] = _calcStatsForPlant(p, location, 10);
+    }
+    _lastStatsLocation = location;
+    localStats = stats;
+  }
+
+  void _recomputeSelection() {
+    sortedPlants = [...plants];
+    sortedPlants.sort((a, b) {
+      final aStat = localStats[a.id];
+      final bStat = localStats[b.id];
+      final aNearest = aStat?.nearestDistanceKm ?? double.infinity;
+      final bNearest = bStat?.nearestDistanceKm ?? double.infinity;
+      if (aNearest != bNearest) return aNearest.compareTo(bNearest);
+      final aLocal = aStat?.localCount10km ?? 0;
+      final bLocal = bStat?.localCount10km ?? 0;
+      if (aLocal != bLocal) return bLocal.compareTo(aLocal);
+      if (a.total != b.total) return b.total.compareTo(a.total);
+      return (a.commonName.isNotEmpty ? a.commonName : a.scientificName)
+          .compareTo(
+              b.commonName.isNotEmpty ? b.commonName : b.scientificName);
+    });
+
+    if (sortedPlants.isEmpty) {
+      focusedPlant = null;
+    } else {
+      focusedPlant = sortedPlants.firstWhere(
+        (p) => selectedIds.contains(p.id),
+        orElse: () => sortedPlants.first,
+      );
+    }
+    setState(() {});
+  }
+
+  void _togglePlantSelection(Plant plant, bool selected) {
     setState(() {
-      loading = false;
+      if (selected) {
+        selectedIds.add(plant.id);
+      } else {
+        selectedIds.remove(plant.id);
+      }
+      if (sortedPlants.isEmpty) {
+        focusedPlant = null;
+      } else {
+        focusedPlant = sortedPlants.firstWhere(
+          (p) => selectedIds.contains(p.id),
+          orElse: () => sortedPlants.first,
+        );
+      }
+    });
+  }
+
+  void _toggleAll(bool selectAll) {
+    setState(() {
+      if (selectAll) {
+        selectedIds = plants.map((p) => p.id).toSet();
+      } else {
+        selectedIds.clear();
+      }
+      if (sortedPlants.isEmpty) {
+        focusedPlant = null;
+      } else {
+        focusedPlant = sortedPlants.firstWhere(
+          (p) => selectedIds.contains(p.id),
+          orElse: () => sortedPlants.first,
+        );
+      }
     });
   }
 
   void _openPlant(Plant p) async {
+    final stats = localStats[p.id];
+    final debugInfo = {
+      "Local (10km)": stats != null ? "${stats.localCount10km}" : "0",
+      "Last obs": _fmtDate(stats?.lastObserved),
+      "Nearest": (stats?.nearestDistanceKm.isFinite == true)
+          ? "${stats!.nearestDistanceKm.toStringAsFixed(1)} km"
+          : "—",
+      "Total (country)": "${p.total}",
+    };
+
     setState(() {
-      selected = p;
+      focusedPlant = p;
     });
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => SpecimenSheet(plant: p),
+      builder: (_) => SpecimenSheet(
+        plant: p,
+        debugInfo: debugInfo,
+        stats: stats,
+      ),
     );
+  }
+
+  PlantLocalStats _calcStatsForPlant(
+      Plant plant, LatLng location, double radiusKm) {
+    final dist = const Distance();
+    var count = 0;
+    var nearest = double.infinity;
+    DateTime? last;
+
+    for (final o in plant.occurrences) {
+      final d = dist.as(LengthUnit.Kilometer, location, LatLng(o.lat, o.lon));
+      if (d < nearest) nearest = d;
+      if (d <= radiusKm) count += o.count;
+      final dt = o.eventDate;
+      if (dt != null && (last == null || dt.isAfter(last))) {
+        last = dt;
+      }
+    }
+
+    return PlantLocalStats(
+      localCount10km: count,
+      nearestDistanceKm: nearest.isFinite ? nearest : double.infinity,
+      lastObserved: last,
+    );
+  }
+
+  double _distanceKm(LatLng a, LatLng b) {
+    return const Distance().as(LengthUnit.Kilometer, a, b);
+  }
+
+  String _fmtDate(DateTime? dt) {
+    if (dt == null) return "—";
+    return dt.toIso8601String().split('T').first;
+  }
+
+  Map<String, Color> _colorMapFor(List<Plant> plants) {
+    const palette = [
+      Color(0xFF1A8F3F),
+      Color(0xFFB56B00),
+      Color(0xFF3B5DC9),
+      Color(0xFFC73434),
+      Color(0xFF6C3BC9),
+      Color(0xFF1294A0),
+      Color(0xFF9B870C),
+      Color(0xFF0F7A8A),
+    ];
+    final map = <String, Color>{};
+    for (var i = 0; i < plants.length; i++) {
+      map[plants[i].id] = palette[i % palette.length];
+    }
+    return map;
   }
 
   @override
   Widget build(BuildContext context) {
-    final allOccurrences = plants.expand((p) => p.occurrences).toList();
-    final hotspots = HotspotService.aggregate(allOccurrences, gridKm: 1);
+    final displayPlants = selectedIds.isEmpty
+        ? <Plant>[]
+        : plants.where((p) => selectedIds.contains(p.id)).toList();
+    final markerColors = _colorMapFor(displayPlants);
 
     return Scaffold(
       body: SafeArea(
@@ -129,7 +263,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 hudMode: hudMode,
                 onToggleTheme: widget.onToggleTheme,
                 themeMode: widget.themeMode,
-                onMode: (m) => setState(() => mode = m),
               ),
               const SizedBox(height: 12),
               Expanded(
@@ -139,17 +272,23 @@ class _HomeScreenState extends State<HomeScreen> {
                       height: MediaQuery.of(context).size.height * 0.36,
                       child: RadarMap(
                         user: user,
-                        mode: mode,
-                        plants: plants,
-                        hotspots: hotspots,
-                        onLocate: _boot,
+                        plants: displayPlants,
+                        plantColors: markerColors,
+                        focusedPlant: focusedPlant,
+                        localStats: localStats,
+                        onLocate: _locateUser,
                       ),
                     ),
                     const SizedBox(height: 12),
                     Expanded(
-                      child: PlantDeck(
-                        plants: plants,
-                        onSelect: _openPlant,
+                      child: PlantList(
+                        plants: sortedPlants,
+                        localStats: localStats,
+                        selectedIds: selectedIds,
+                        onToggle: _togglePlantSelection,
+                        onToggleAll: _toggleAll,
+                        onInfo: _openPlant,
+                        onFocus: (p) => setState(() => focusedPlant = p),
                       ),
                     )
                   ],
@@ -168,14 +307,12 @@ class _TopBar extends StatelessWidget {
   final String hudMode;
   final VoidCallback onToggleTheme;
   final ThemeMode themeMode;
-  final ValueChanged<MapMode> onMode;
 
   const _TopBar({
     required this.regionName,
     required this.hudMode,
     required this.onToggleTheme,
     required this.themeMode,
-    required this.onMode,
   });
 
   @override
@@ -193,24 +330,18 @@ class _TopBar extends StatelessWidget {
             .surface
             .withOpacity(isLight ? 0.85 : 0.55),
       ),
-      child: Row(
+      child: Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        alignment: WrapAlignment.spaceBetween,
         children: [
           const _Brand(),
-          const Spacer(),
           _Pill(text: "Region: $regionName"),
-          const SizedBox(width: 8),
+          _Pill(text: hudMode),
           TextButton(
             onPressed: onToggleTheme,
             child: Text(isLight ? "Dark" : "Bright"),
-          ),
-          PopupMenuButton<MapMode>(
-            onSelected: onMode,
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: MapMode.hotspots, child: Text("Hotspots")),
-              PopupMenuItem(
-                  value: MapMode.allPoints, child: Text("All points")),
-            ],
-            child: const Icon(Icons.tune),
           ),
         ],
       ),

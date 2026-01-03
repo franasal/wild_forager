@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../../models/plant.dart';
-import '../../models/occurrence.dart';
-import '../../services/hotspot_service.dart';
-import '../ui/screens/home_screen.dart';
+import 'package:wild_forager/models/occurrence.dart';
+import 'package:wild_forager/models/plant.dart';
+import 'package:wild_forager/models/plant_local_stats.dart';
 
 enum MapTileStyle {
   osmStandard,
@@ -15,17 +14,19 @@ enum MapTileStyle {
 
 class RadarMap extends StatefulWidget {
   final LatLng user;
-  final MapMode mode;
   final List<Plant> plants;
-  final List<HotspotCell> hotspots;
+  final Map<String, Color> plantColors;
+  final Plant? focusedPlant;
+  final Map<String, PlantLocalStats> localStats;
   final VoidCallback onLocate;
 
   const RadarMap({
     super.key,
     required this.user,
-    required this.mode,
     required this.plants,
-    required this.hotspots,
+    required this.plantColors,
+    required this.focusedPlant,
+    required this.localStats,
     required this.onLocate,
   });
 
@@ -35,94 +36,30 @@ class RadarMap extends StatefulWidget {
 
 class _RadarMapState extends State<RadarMap> {
   final MapController _mapController = MapController();
-  HotspotCell? _selectedHotspot;
   Occurrence? _selectedOccurrence;
   MapTileStyle _tileStyle = MapTileStyle.osmStandard;
   _MapTooltipData? _tooltip;
+  static const _fallbackPalette = [
+    Color(0xFF1A8F3F),
+    Color(0xFFB56B00),
+    Color(0xFF3B5DC9),
+    Color(0xFFC73434),
+    Color(0xFF6C3BC9),
+    Color(0xFF1294A0),
+    Color(0xFF9B870C),
+    Color(0xFF0F7A8A),
+  ];
 
   @override
   void didUpdateWidget(covariant RadarMap oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.mode != oldWidget.mode && widget.mode != MapMode.hotspots) {
-      _selectedHotspot = null;
-    }
-    if (widget.mode != oldWidget.mode && widget.mode != MapMode.allPoints) {
-      _selectedOccurrence = null;
-    }
-  }
-
-  ({HotspotCell cell, double radiusMeters})? _hitTestHotspot(
-    LatLng tap,
-    List<HotspotCell> hotspots,
-    int maxCount,
-  ) {
-    if (hotspots.isEmpty) return null;
-
-    final dist = const Distance();
-
-    HotspotCell? best;
-    double bestRatio = 0;
-    double bestRadius = 0;
-
-    for (final c in hotspots.take(400)) {
-      final intensity = (c.count / (maxCount == 0 ? 1 : maxCount))
-          .clamp(0.0, 1.0)
-          .toDouble();
-      final radiusMeters = 60 + (240 * intensity);
-      final d = dist.as(LengthUnit.Meter, tap, LatLng(c.lat, c.lon));
-      if (d > radiusMeters) continue;
-
-      final ratio = 1 - (d / radiusMeters);
-      if (ratio > bestRatio) {
-        best = c;
-        bestRatio = ratio;
-        bestRadius = radiusMeters;
+    if (widget.user != oldWidget.user) {
+      try {
+        _mapController.move(widget.user, _mapController.camera.zoom);
+      } catch (_) {
+        // MapController not ready yet.
       }
     }
-
-    if (best == null) return null;
-    return (cell: best, radiusMeters: bestRadius);
-  }
-
-  ({int count, DateTime? lastObserved}) _countAndLastInRadius(
-    Plant plant,
-    LatLng center,
-    double radiusMeters,
-  ) {
-    final dist = const Distance();
-    var count = 0;
-    DateTime? last;
-
-    for (final o in plant.occurrences) {
-      final d = dist.as(LengthUnit.Meter, center, LatLng(o.lat, o.lon));
-      if (d > radiusMeters) continue;
-      count += o.count;
-      final dt = o.eventDate;
-      if (dt != null && (last == null || dt.isAfter(last))) last = dt;
-    }
-
-    return (count: count, lastObserved: last);
-  }
-
-  DateTime? _lastObservedOverall(Plant plant) {
-    DateTime? last;
-    for (final o in plant.occurrences) {
-      final dt = o.eventDate;
-      if (dt != null && (last == null || dt.isAfter(last))) last = dt;
-    }
-    return last;
-  }
-
-  String _fmtDate(DateTime? dt) {
-    if (dt == null) return "—";
-    return dt.toIso8601String().split('T').first;
-  }
-
-  void _setTooltip(TapPosition tapPos, _MapTooltipData? next) {
-    final anchor = tapPos.relative ?? tapPos.global;
-    setState(() {
-      _tooltip = (next == null) ? null : next.copyWith(anchor: anchor);
-    });
   }
 
   ({Plant plant, Occurrence occ, double distMeters})? _hitTestOccurrence(
@@ -177,12 +114,44 @@ class _RadarMapState extends State<RadarMap> {
     }
   }
 
+  String _fmtDate(DateTime? dt) {
+    if (dt == null) return "—";
+    return dt.toIso8601String().split('T').first;
+  }
+
+  void _setTooltip(TapPosition tapPos, _MapTooltipData? next) {
+    final anchor = tapPos.relative ?? tapPos.global;
+    setState(() {
+      _tooltip = (next == null) ? null : next.copyWith(anchor: anchor);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final allOcc = widget.plants.expand((p) => p.occurrences).toList();
-    final max = widget.hotspots.isEmpty
-        ? 1
-        : widget.hotspots.map((c) => c.count).reduce((a, b) => a > b ? a : b);
+    final circles = <CircleMarker>[];
+    if (widget.plants.isNotEmpty) {
+      const maxCircles = 1400;
+      final perPlantCap =
+          (maxCircles / widget.plants.length).ceil().clamp(50, 300);
+
+      for (var i = 0; i < widget.plants.length; i++) {
+        final plant = widget.plants[i];
+        if (plant.occurrences.isEmpty) continue;
+        final color = widget.plantColors[plant.id] ??
+            _fallbackPalette[i % _fallbackPalette.length];
+        for (final o in plant.occurrences.take(perPlantCap)) {
+          circles.add(
+            CircleMarker(
+              point: LatLng(o.lat, o.lon),
+              radius: 7,
+              color: color.withOpacity(0.95),
+              borderStrokeWidth: 1.5,
+              borderColor: color.withOpacity(0.95),
+            ),
+          );
+        }
+      }
+    }
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(22),
@@ -206,7 +175,7 @@ class _RadarMapState extends State<RadarMap> {
               FlutterMap(
                 options: MapOptions(
                   initialCenter: widget.user,
-                  initialZoom: 13,
+                  initialZoom: 12,
                   interactionOptions: const InteractionOptions(
                     flags: InteractiveFlag.drag |
                         InteractiveFlag.pinchZoom |
@@ -214,191 +183,58 @@ class _RadarMapState extends State<RadarMap> {
                         InteractiveFlag.scrollWheelZoom,
                   ),
                   onPositionChanged: (_, __) {
-                    if (_tooltip == null) return;
-                    setState(() => _tooltip = null);
+                    if (_tooltip != null) {
+                      setState(() => _tooltip = null);
+                    }
                   },
                   onTap: (tapPos, latLng) {
-                    if (widget.mode == MapMode.hotspots) {
-                      final hit = _hitTestHotspot(
-                          latLng, widget.hotspots, max);
-                      if (hit == null) {
-                        setState(() {
-                          _selectedHotspot = null;
-                          _tooltip = null;
-                        });
-                        return;
-                      }
-
-                      final center = LatLng(hit.cell.lat, hit.cell.lon);
-                      final top = <({Plant plant, int count, DateTime? last})>[];
-                      for (final p in widget.plants) {
-                        final stats = _countAndLastInRadius(
-                          p,
-                          center,
-                          hit.radiusMeters,
-                        );
-                        if (stats.count <= 0) continue;
-                        top.add((
-                          plant: p,
-                          count: stats.count,
-                          last: stats.lastObserved,
-                        ));
-                      }
-                      top.sort((a, b) => b.count.compareTo(a.count));
-
+                    final hit = _hitTestOccurrence(latLng, widget.plants, 70);
+                    if (hit == null) {
                       setState(() {
-                        _selectedHotspot = hit.cell;
                         _selectedOccurrence = null;
+                        _tooltip = null;
                       });
-
-                      if (top.isEmpty) {
-                        _setTooltip(
-                          tapPos,
-                          _MapTooltipData(
-                            anchor: const Offset(0, 0),
-                            title: "Hotspot",
-                            lines: [
-                              "Obs: ${hit.cell.count}",
-                              "Center: ${hit.cell.lat.toStringAsFixed(4)}, ${hit.cell.lon.toStringAsFixed(4)}",
-                              "Last obs: —",
-                            ],
-                          ),
-                        );
-                        return;
-                      }
-
-                      final best = top.first;
-                      _setTooltip(
-                        tapPos,
-                        _MapTooltipData(
-                          anchor: const Offset(0, 0),
-                          title: best.plant.commonName,
-                          lines: [
-                            best.plant.scientificName,
-                            "Nearby obs: ${best.count}",
-                            "Last obs: ${_fmtDate(best.last)}",
-                          ],
-                        ),
-                      );
                       return;
                     }
 
-                    if (widget.mode == MapMode.allPoints) {
-                      final hit = _hitTestOccurrence(latLng, widget.plants, 70);
-                      if (hit == null) {
-                        setState(() {
-                          _selectedOccurrence = null;
-                          _tooltip = null;
-                        });
-                        return;
-                      }
+                    setState(() {
+                      _selectedOccurrence = hit.occ;
+                    });
 
-                      setState(() {
-                        _selectedHotspot = null;
-                        _selectedOccurrence = hit.occ;
-                      });
-
-                      _setTooltip(
-                        tapPos,
-                        _MapTooltipData(
-                          anchor: const Offset(0, 0),
-                          title: hit.plant.commonName,
-                          lines: [
-                            hit.plant.scientificName,
-                            "This obs: ${_fmtDate(hit.occ.eventDate)}",
-                            "Last obs: ${_fmtDate(_lastObservedOverall(hit.plant))}",
-                          ],
-                        ),
-                      );
-                    }
+                    _setTooltip(
+                      tapPos,
+                      _MapTooltipData(
+                        anchor: const Offset(0, 0),
+                        title: hit.plant.commonName.isNotEmpty
+                            ? hit.plant.commonName
+                            : hit.plant.scientificName,
+                        lines: [
+                          hit.plant.scientificName,
+                          "This obs: ${_fmtDate(hit.occ.eventDate)}",
+                        ],
+                      ),
+                    );
                   },
                 ),
                 mapController: _mapController,
                 children: [
                   _buildTileLayer(),
-                  // Hotspots
-                  if (widget.mode == MapMode.hotspots)
-                    CircleLayer(
-                      circles: widget.hotspots.take(250).map((c) {
-                        final intensity = (c.count / max).clamp(0.0, 1.0);
-                        final radiusMeters =
-                            60 + (240 * intensity); // simple scale
-                        return CircleMarker(
-                          point: LatLng(c.lat, c.lon),
-                          radius: radiusMeters,
-                          useRadiusInMeter: true,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .primary
-                              .withOpacity(0.18 + 0.45 * intensity),
-                          borderStrokeWidth: 1,
-                          borderColor: Theme.of(context)
-                              .colorScheme
-                              .primary
-                              .withOpacity(0.35),
-                        );
-                      }).toList(),
-                    ),
-
-                  // Points
-                  if (widget.mode == MapMode.allPoints)
-                    CircleLayer(
-                      circles: allOcc.take(600).map((o) {
-                        return CircleMarker(
-                          point: LatLng(o.lat, o.lon),
-                          radius: 4,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .primary
-                              .withOpacity(0.55),
-                          borderStrokeWidth: 1,
-                          borderColor: Theme.of(context)
-                              .colorScheme
-                              .primary
-                              .withOpacity(0.65),
-                        );
-                      }).toList(),
-                    ),
-
-                  // User
-                  CircleLayer(
-                    circles: [
-                      CircleMarker(
+                  if (circles.isNotEmpty) CircleLayer(circles: circles),
+                  MarkerLayer(
+                    markers: [
+                      Marker(
                         point: widget.user,
-                        radius: 8,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .primary
-                            .withOpacity(0.25),
-                        borderStrokeWidth: 2,
-                        borderColor: Theme.of(context)
-                            .colorScheme
-                            .primary
-                            .withOpacity(0.8),
+                        width: 40,
+                        height: 40,
+                        alignment: Alignment.bottomCenter,
+                        child: Icon(
+                          Icons.location_on,
+                          size: 36,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                       )
                     ],
                   ),
-
-                  if (_selectedHotspot != null)
-                    CircleLayer(
-                      circles: [
-                        CircleMarker(
-                          point: LatLng(
-                              _selectedHotspot!.lat, _selectedHotspot!.lon),
-                          radius: 18,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .secondary
-                              .withOpacity(0.18),
-                          borderStrokeWidth: 2,
-                          borderColor: Theme.of(context)
-                              .colorScheme
-                              .secondary
-                              .withOpacity(0.9),
-                        )
-                      ],
-                    ),
-
                   if (_selectedOccurrence != null)
                     CircleLayer(
                       circles: [
@@ -420,29 +256,23 @@ class _RadarMapState extends State<RadarMap> {
                     ),
                 ],
               ),
-
-              // HUD overlay
               Positioned(
                 left: 12,
                 top: 12,
                 child: _HudBox(
                   title: "Radar",
-                  body: widget.mode == MapMode.hotspots
-                      ? "Hotspots"
-                      : "All points",
+                  body: "${circles.length} points",
                 ),
               ),
-
               Positioned(
                 right: 12,
                 top: 12,
                 child: _HudBox(
-                  title: "${widget.plants.length} cards",
-                  body: "${allOcc.length} points",
+                  title: "${widget.plants.length} plants",
+                  body: circles.isEmpty ? "No markers" : "Tap markers for details",
                   alignRight: true,
                 ),
               ),
-
               Positioned(
                 left: 12,
                 bottom: 12,
@@ -451,16 +281,21 @@ class _RadarMapState extends State<RadarMap> {
                   onChanged: (v) => setState(() => _tileStyle = v),
                 ),
               ),
-
               Positioned(
                 right: 12,
                 bottom: 12,
                 child: ElevatedButton(
-                  onPressed: widget.onLocate,
+                  onPressed: () {
+                    widget.onLocate();
+                    try {
+                      _mapController.move(widget.user, 14);
+                    } catch (_) {
+                      // Map not ready; ignore.
+                    }
+                  },
                   child: const Text("Locate"),
                 ),
               ),
-
               if (tooltip != null)
                 Positioned(
                   left: tooltipPos.dx,
